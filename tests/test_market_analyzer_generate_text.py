@@ -699,8 +699,44 @@ class TestMarketAnalyzerBypassFix:
         assert "### 3. Breadth & Liquidity" in result
         assert "Turnover (CNY 100m)" in result
         assert "### 4. Sector Highlights" in result
+        assert "### 5. Risk Alerts" in result
+        assert "### 6. Risk Alerts" not in result
         assert "### 6. Strategy Framework" in result
         assert "### 一、市场总结" not in result
+
+    def test_generate_template_review_uses_hot_stock_heading_and_keeps_english_numbering(self):
+        from src.market_analyzer import MarketIndex, MarketOverview
+
+        ma = self._make_market_analyzer_with_mock_generate_text(return_value=None)
+        ma.config.report_language = "en"
+        overview = MarketOverview(
+            date="2026-03-06",
+            indices=[
+                MarketIndex(
+                    code="000001",
+                    name="上证指数",
+                    current=3310.0,
+                    change=12.0,
+                    change_pct=0.36,
+                )
+            ],
+            up_count=3200,
+            down_count=1800,
+            limit_up_count=88,
+            limit_down_count=5,
+            total_amount=14567.0,
+            top_sectors=[{"name": "AI算力", "change_pct": 3.25}],
+            bottom_sectors=[{"name": "煤炭", "change_pct": -1.12}],
+            hot_stocks=[{"rank": 1, "name": "中国长城", "change_pct": 9.99}],
+            limit_up_stocks=[{"code": "603399", "name": "永杉锂业", "consecutive_boards": 2}],
+        )
+
+        result = ma.generate_market_review(overview, [])
+
+        assert "### 5. Hot Stocks & Limit-up Ladder" in result
+        assert "### 6. Risk Alerts" in result
+        assert "### 7. Strategy Framework" in result
+        assert "### 7. Strategy Framework" in result and result.index("### 6. Risk Alerts") < result.index("### 7. Strategy Framework")
 
     def test_generate_template_review_keeps_chinese_shell_for_us_when_report_language_is_default(self):
         from src.core.market_profile import US_PROFILE

@@ -247,17 +247,21 @@ Focus on index trend, liquidity, and sector rotation to shape the next-session t
 - Balanced: index divergence or low-volume consolidation; keep sizing controlled and wait for confirmation.
 - Defensive: indices weaken and laggards broaden; prioritize risk control and de-risking."""
 
-    def _get_strategy_markdown_block(self, review_language: str | None = None) -> str:
+    def _get_strategy_markdown_block(
+        self,
+        review_language: str | None = None,
+        heading_number: int = 6,
+    ) -> str:
         review_language = review_language or self._get_review_language()
         if self.region == "hk" and review_language == "en":
-            return """### 6. Strategy Framework
+            return f"""### {heading_number}. Strategy Framework
 - **Trend Regime**: Classify the market as momentum, range, or risk-off based on HSI/HSTECH/HSCEI alignment.
 - **Capital Flows**: Track southbound flow direction and macro narrative for risk appetite signals.
 - **Sector Themes**: Focus on tech/internet platform persistence and financials/property policy sensitivity.
 """
         if not (self.region == "cn" and review_language == "en"):
             return self.strategy.to_markdown_block()
-        return """### 6. Strategy Framework
+        return f"""### {heading_number}. Strategy Framework
 - **Trend Structure**: Determine whether the market is in an uptrend, range, or defensive phase.
 - **Liquidity & Sentiment**: Track breadth, turnover expansion, and whether leaders are diverging.
 - **Leading Themes**: Focus on sectors with catalysts and sustained leadership while avoiding broadening weakness.
@@ -1447,13 +1451,20 @@ Output the report content directly, no extra commentary.
 - **Concept leaders**: {top_concept_text or "N/A"}
 """
             hot_section = ""
+            has_hot_section = False
             if hot_stock_block:
                 hot_section = f"""
 ### 5. Hot Stocks & Limit-up Ladder
 {hot_stock_block}
 """
+                has_hot_section = True
             market_names = {"us": "US Market Recap", "hk": "HK Market Recap"}
             market_name = market_names.get(self.region, "A-share Market Recap")
+            if self.region == "us":
+                risk_alert_section = 6
+            else:
+                risk_alert_section = 6 if (is_a_share_review and has_hot_section) else 5
+            strategy_section = risk_alert_section + 1
             report = f"""## {overview.date} {market_name}
 
 ### 1. Market Summary
@@ -1464,10 +1475,10 @@ Today's {self._get_market_scope_name(template_language)} showed **{market_mood}*
 {stats_section}
 {sector_section}
 {hot_section}
-### 6. Risk Alerts
+### {risk_alert_section}. Risk Alerts
 Market conditions can change quickly. The data above is for reference only and does not constitute investment advice.
 
-{self._get_strategy_markdown_block(template_language)}
+{self._get_strategy_markdown_block(template_language, heading_number=strategy_section)}
 
 ---
 *Review Time: {datetime.now().strftime('%H:%M')}*
