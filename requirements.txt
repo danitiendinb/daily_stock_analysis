@@ -40,3 +40,6 @@ pytest-cov>=4.0.0
 black>=22.10.0
 flake8>=5.0.0
 isort>=5.10.0
+
+# Note: smtplib2 is not available on PyPI -- using standard library smtplib instead.
+# If email notifications fail, remove smtplib2 above and rely on the built-in smtplib.
